@@ -1,0 +1,282 @@
+* What is it
+a single function for org-mode files that allows embedded slideshows, animated
+ASCII diagrams...
+
+* Examples
+possible examples:
+- bubblesort
+- latex math
+- ...
+
+#+BEGIN: update-slide :count 0
+   |---+------+-----+--------|
+   |   | name | age | city   |
+   |---+------+-----+--------|
+   | 1 | max  |  23 | london |
+   |---+------+-----+--------|
+#+SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   |---+-------+-----+--------|
+#+SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   | 3 | bob   |  34 | tokyo  |
+   |---+-------+-----+--------|
+#+SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   | 3 | bob   |  34 | tokyo  |
+   | 4 | chris |  12 | berlin |
+   |---+-------+-----+--------|
+#+SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   | 3 | bob   |  34 | tokyo  |
+   | 4 | chris |  12 | berlin |
+   | 5 | ahlsd | 165 | asjld  |
+   |---+-------+-----+--------|
+#+END:
+#+BEGIN: update-slide :count 0 :delimiter "-----slide-----"
+     (3) 5  8  1  2  9  4  6
+-----slide-----
+      5 (3) 8  1  2  9  4  6
+-----slide-----
+      5  3 (8) 1  2  9  4  6
+-----slide-----
+      5  3  1 (8) 2  9  4  6
+-----slide-----
+      1  2  3  4  5  6  7  8
+#+END:
+#+BEGIN: update-slide :count 0
+Potenzregel (power rule)
+    \[f(x) = a \cdot x^{n} \implies F(x) = \frac{a}{n+1} \cdot x^{n+1} + c \]
+#+SLIDE
+Faktorregel (constant factor rule)
+    \[ \int c \cdot f(x)dx = c \cdot \int f(x)dx  \]
+#+SLIDE
+Summenregel (sum rule)
+    \[ \int (f(x) \pm g(x))dx = \int f(x)dx \pm \int g(x)dx \]
+#+SLIDE
+Sonderregel
+    \[\int \frac{f'(x)}{f(x)}dx = ln f(x) + c \]
+#+END:
+#+BEGIN: update-slide :count 0
+[[./math1.png]]
+#+SLIDE
+[[./math2.png]]
+#+SLIDE
+[[./math3.png]]
+#+SLIDE
+[[./math3.png]]
+#+END:
+
+* The function
+#+BEGIN_SRC emacs-lisp :noeval
+(defun org-dblock-write:update-slide (params)
+  (let ((text      (plist-get params :content))
+        (count     (plist-get params :count)) ;; TODO check for nil, don't break when missing
+        (delimiter (plist-get params :delimiter))
+        (slides '(0))
+        new-count
+        pos-of-block-in-buf
+        end-of-block-in-buf)
+    (unless delimiter (setq delimiter "#+SLIDE"))
+    (setq new-count (1+ count))
+    (setq delimiter (regexp-quote delimiter)) ; escape special regex chars
+    (setq pos-of-block-in-buf (point))
+    (setq text (substring text 0 -1)) ; remove last newline from text
+    (save-excursion (insert text))
+
+    (setq last-match (string-match delimiter text))
+    (while (not (equal last-match nil)) ;; fill slides list with indices
+      (setq slides (append slides (list last-match))) ;; TODO there must be a better way...
+      (setq last-match (string-match delimiter text (+ (car (last slides)) (length delimiter)))))
+    (setq slides (append slides (list (length text))))
+    (setq end-of-block-in-buf (+ pos-of-block-in-buf (car (last slides))))
+
+    (when (>= new-count (length slides)) (setq new-count 0)) ; wraparound
+
+    (save-excursion ; return point to where it was after this call
+      (let ((curr-count (concat ":count " (number-to-string count)))
+            (next-count (concat ":count " (number-to-string new-count))))
+        (forward-line -1)            ; go to #+BEGIN:... line
+        (org-hide-block-toggle 'off) ; make block fully visible incase it's hidden
+        (replace-string-in-region curr-count next-count nil pos-of-block-in-buf)))
+
+    ; TODO rewrite
+    (outline-flag-region (- pos-of-block-in-buf 1) end-of-block-in-buf t)
+    (let ((hide-from (+ (+ pos-of-block-in-buf (nth (- new-count 1) slides)) (- (length delimiter) 1)))
+          (hide-to   (+ pos-of-block-in-buf (nth new-count slides))))
+      (when (equal new-count 1) (setq hide-from (- pos-of-block-in-buf 1))) ; special case
+      (if (equal new-count 0)
+        (outline-flag-region (- pos-of-block-in-buf 2) end-of-block-in-buf nil)
+        (outline-flag-region hide-from hide-to nil)
+        ))
+
+    (org-latex-preview)         ; preview latex in case they are part of the slide
+    (org-display-inline-images) ; show images in case they are part of the slide
+))
+#+END_SRC
+* Exporting
+#+BEGIN_SRC emacs-lisp :noeval
+(defun org-slide-export (text backend info)
+  "Remove the slide delimiters from the html"
+  (when (org-export-derived-backend-p backend 'html)
+    (print text)
+    ; TODO pull the delimiter argument out the plist for the dynamic block - but
+    ; when looking at parse-tree: (dynamic-block (... :block-name "update" :arguments nil ..))
+    (replace-regexp-in-string (regexp-quote "#+SLIDE") "" text)))
+
+; TODO can cause an error because ox gets lazy-loaded
+(add-to-list 'org-export-filter-dynamic-block-functions
+             'org-slide-export)
+#+END_SRC
+
+* Creation
+#+BEGIN_SRC emacs-lisp :noeval
+(defun org-slide-insert-dblock ()
+  "Create a org-slide dynamic block at point.
+   TODO Let the block inherits its properties from a variable
+       `org-slide-default-properties'."
+  (interactive)
+  (org-create-dblock (list :name "org-slide" :count 0 :delimiter "#+SLIDE")))
+
+
+(add-to-list 'org-dynamic-block-alist '("slide" . org-slide-insert-dblock))
+#+END_SRC
+
+* Indentation
+   #+BEGIN: insert-text
+   lasjdlksja
+   askdjlsaj
+     adlsjsdljasdl
+   #+END:
+
+(defun org-dblock-write:insert-text (params)
+  (let ( (text (plist-get params :content)) )
+    (setq text (substring text 0 -1)) ; remove last newline from text
+    ;(move-beginning-of-line nil)
+    (insert text)))
+
+* TODO
+- [X] find out how to narrow / hide lines from the buffer
+- [X] find out where begin_slide block starts and ends
+- [X] support for images inside the slides
+- [X] add org-slide to list of ~org-dynamic-block-insert-dblock~
+- [ ] add a creation function ~org-slide-insert-dblock~
+- [ ] support indented blocks
+  + look at columnview or clocktable for how to
+- [ ] fix "copypaste only using one line" bug...
+- [ ] check out https://github.com/mhayashi1120/Emacs-slideview/tree/ec2340e7b0e74201206d14e3eaef1e77149f122d
+- [X] optionally run (org-update-all-dblocks) on startup
+  + one way: add function to a hook for org files:
+    ~(add-hook 'org-mode-hook 'org-update-all-dblocks)~
+- [ ] fix missing/hidden newline when using C-c and then running undo
+- [ ] allow skipping over :count 0
+  + maybe by adding a :skipzero parameter
+  + maybe implement using org-tag-alist, #+TAGS: TAG1(c1)
+- [ ] fix ':count X' disappearing at count=3...
+- [ ] find out how to hook into the org exporter
+- [ ] find out how to export HTML (clickable animation)
+- [ ] find out how to export Latex
+- [ ] implement without dirtying the buffer when 'C-c C-c'
+  + Probably can't be done when using org-mode dynamic blocks
+
+* Limitations
+- +The buffer will always be dirty when going through the slides. This is AFAIK
+  not avoidable when using dynamic blocks (running ~org-dblock-update~ always
+  removes the text inside the block)+ TODO: this might be avoidable by using
+  ~not-modified~.
+
+* Package file
+- significant comments start with `;;;` - 3 semicolons, not 2
+- there must be a Version header, unless you’re only supporting MELPA
+- the Commentary section should be present
+- the `;;; Code:` marker is important, it shows the end of the Commentary
+- the end marker must be present
+
+#+BEGIN_SRC emacs-lisp :noeval
+;;; org-slide.el --- a package for <TODO>    -*- lexical-binding: t; -*-
+
+;; Copyright (C) <YEAR> <NAME>
+
+;; Author:   <NAME> <<MAIL>>
+;; Keywords: lisp
+;; Version:  0.0.1
+
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+;;; Commentary:
+
+;; TODO Put a description of the package here
+
+;;; Code:
+
+;; code goes here
+
+(provide 'org-slide)
+;;; test.el ends here
+#+END_SRC
+
+* Submit to MELPA
+- Write a recipe, see https://github.com/melpa/melpa
+- Check output of byte-compile
+- Check output of checkdoc
+- Check output of melpazoid
+- Check output of package-lint
+
+See https://github.com/melpa/melpa/blob/master/CONTRIBUTING.org
+
+* Test undoing
+#+BEGIN_SRC emacs-lisp :noeval
+(defun org-dblock-write:test-undo (params)
+  (undo) (undo -1) ;; TODO This is a hack to avoid modifying the buffer,
+                   ;;      there might be a better way
+)
+
+;(restore-buffer-modified-p nil)
+#+END_SRC
+
+#+BEGIN: test-undo
+soidjas
+asdkljsd alsjd lkjasdlkjasd
+asjldkjasdkl
+#+END:
+
+* Resources
+- https://orgmode.org/manual/Dynamic-Blocks.html
+- https://www.gnu.org/software/emacs/manual/html_node/org/Dynamic-Blocks.html
+- [[https://www-public.imtbs-tsp.eu/~berger_o/weblog/2019/11/26/displaying-animated-diagrams-in-org-reveal-slide-decks-with-svg/][Displaying animated diagrams in org-reveal slide decks with svg]]
+- https://orgmode.org/manual/Hacking.html#Hacking
+- https://orgmode.org/manual/Advanced-Export-Configuration.html
+
+For HTML export:
+- https://pagepro.co/blog/how-to-build-a-slider-without-javascript/
+- https://corpocrat.com/2015/12/09/20-cool-pure-css-sliders-without-jqueryjavascript/
+
+Writing emacs packages:
+- https://spin.atomicobject.com/2016/05/27/write-emacs-package/
