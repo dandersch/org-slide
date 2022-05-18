@@ -74,6 +74,16 @@ Sonderregel
 [[./math3.png]]
 #+END:
 
+  #+BEGIN: org-slide :count 0
+    bla
+    #+SLIDE
+    bl abl
+    #+SLIDE
+    blaksdaksjdl
+    las jdla
+    alksdjalsdkj
+  #+END:
+
 * [X] The function
 #+BEGIN_SRC emacs-lisp :noeval
 (defun org-dblock-write:update-slide (params)
@@ -186,17 +196,112 @@ Sonderregel
 
 * Indentation
    #+BEGIN: insert-text
-   lasjdlksja
-   askdjlsaj
-     adlsjsdljasdl
    #+END:
+
+    #+BEGIN: clocktable :scope subtree :maxlevel 2
+    #+CAPTION: Clock summary at [2022-05-17 Tue 23:10]
+    | Headline   | Time |
+    |------------+------|
+    | *Total time* | *0:00* |
+    #+END:
+
+#+BEGIN_SRC emacs-lisp :noeval
+(defun org-dblock-write:clocktable (params)
+  "Write the standard clocktable."
+  (setq params (org-combine-plists org-clocktable-defaults params))
+  (catch 'exit
+    (let* ((scope (plist-get params :scope))
+           (base-buffer (org-base-buffer (current-buffer)))
+           (files (pcase scope [...] ))
+	   (block (plist-get params :block))
+	   (ts (plist-get params :tstart))
+	   (te (plist-get params :tend))
+	   (ws (plist-get params :wstart))
+	   (ms (plist-get params :mstart))
+	   (step (plist-get params :step))
+	   (hide-files (plist-get params :hidefiles))
+	   (formatter (or (plist-get params :formatter)
+			  org-clock-clocktable-formatter
+			  'org-clocktable-write-default))
+	   cc)
+      ;; Check if we need to do steps
+      (when block
+	;; Get the range text for the header
+	(setq cc (org-clock-special-range block nil t ws ms)
+	      ts (car cc)
+	      te (nth 1 cc)))
+      (when step
+	;; Write many tables, in steps
+	(unless (or block (and ts te))
+	  (user-error "Clocktable `:step' can only be used with `:block' or `:tstart', `:tend'"))
+	(org-clocktable-steps params)
+	(throw 'exit nil))
+
+      (org-agenda-prepare-buffers (if (consp files) files (list files)))
+
+      (let ((origin (point))
+	    (tables
+	     (if (consp files)
+		 (mapcar (lambda (file)
+			   (with-current-buffer (find-buffer-visiting file)
+			     (save-excursion
+			       (save-restriction
+				 (org-clock-get-table-data file params)))))
+			 files)
+	       ;; Get the right restriction for the scope.
+	       (save-restriction
+		 (cond
+		  ((not scope))	     ;use the restriction as it is now
+		  ((eq scope 'file) (widen))
+		  ((eq scope 'subtree) (org-narrow-to-subtree))
+		  ((eq scope 'tree)
+		   (while (org-up-heading-safe))
+		   (org-narrow-to-subtree))
+		  ((and (symbolp scope)
+			(string-match "\\`tree\\([0-9]+\\)\\'"
+				      (symbol-name scope)))
+		   (let ((level (string-to-number
+				 (match-string 1 (symbol-name scope)))))
+		     (catch 'exit
+		       (while (org-up-heading-safe)
+			 (looking-at org-outline-regexp)
+			 (when (<= (org-reduced-level (funcall outline-level))
+				   level)
+			   (throw 'exit nil))))
+		     (org-narrow-to-subtree))))
+		 (list (org-clock-get-table-data nil params)))))
+	    (multifile
+	     ;; Even though `file-with-archives' can consist of
+	     ;; multiple files, we consider this is one extended file
+	     ;; instead.
+	     (and (not hide-files)
+		  (consp files)
+		  (not (eq scope 'file-with-archives)))))
+
+	(funcall formatter
+		 origin
+		 tables
+		 (org-combine-plists params `(:multifile ,multifile)))))))
+#+END_SRC
 
 #+BEGIN_SRC emacs-lisp :noeval
 (defun org-dblock-write:insert-text (params)
-  (let ( (text (plist-get params :content)) )
-    (setq text (substring text 0 -1)) ; remove last newline from text
+  (let* ( (scope (plist-get params :scope))
+	      (block (plist-get params :block))
+	      (text  (plist-get params :content))
+         )
+    (print params)
+    (print (point))
+    (print text)
+    (beginning-of-line)
+    ;(insert text)
+    (insert "a")
+    )
+  )
+  ;(let ( (text (plist-get params :content)) )
+    ;(setq text (substring text 0 -1)) ; remove last newline from text
     ;(move-beginning-of-line nil)
-    (insert text)))
+    ;(insert text)))
 #+END_SRC
 
 * Test undoing

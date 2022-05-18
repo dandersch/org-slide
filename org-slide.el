@@ -4,7 +4,7 @@
 
 ;; Author:   TODO: NAME <MAIL>
 ;; Keywords: TODO: lisp
-;; Package-Requires: ((emacs "27.1") (org "9.5"))
+;; Package-Requires: ((emacs "28.1") (org "9.5")) TODO try to support older versions
 ;; Homepage: TODO
 ;; Version:  0.0.1
 
@@ -29,29 +29,31 @@
 
 ;;; ORG-SLIDE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (require 'org) ;; TODO should this go here or should the user be required to
-               ;;      load org before loading this pkg
+(require 'ox)  ;;      load org before loading this pkg
 
+;; TODO autoload doesn't work...
+;;;###autoload
 (defun org-dblock-write:org-slide (params)
-  (let ((text      (plist-get params :content))
-        (count     (plist-get params :count)) ;; TODO check for nil, don't break when missing
-        (delimiter (plist-get params :delimiter))
-        (slides '(0))
-        new-count
-        pos-of-block-in-buf
-        end-of-block-in-buf)
-    (unless delimiter (setq delimiter "#+SLIDE"))
-    (setq new-count (1+ count))
+  "TODO: PARAMS comes from dynamic block."
+  (let* ((text      (substring (plist-get params :content) 0 -1)) ; remove last newline from text
+         (count     (plist-get params :count)) ;; TODO check for nil, don't break when missing
+         (delimiter (or (plist-get params :delimiter) "#+SLIDE"))
+         (indent (plist-get params :indentation-column)) ; TODO account for indentation
+         (slides '(0))
+         (new-count (1+ count))
+         (pos-of-block-in-buf (point))
+         last-match
+         (end-of-block-in-buf (+ pos-of-block-in-buf (length text))))
     (setq delimiter (regexp-quote delimiter)) ; escape special regex chars
-    (setq pos-of-block-in-buf (point))
-    (setq text (substring text 0 -1)) ; remove last newline from text
-    (save-excursion (insert text))
+    (save-excursion (insert text)
+                    ;(indent-region pos-of-block-in-buf end-of-block-in-buf indent)
+                    )
 
     (setq last-match (string-match delimiter text))
     (while (not (equal last-match nil)) ;; fill slides list with indices
       (setq slides (append slides (list last-match))) ;; TODO there must be a better way...
       (setq last-match (string-match delimiter text (+ (car (last slides)) (length delimiter)))))
-    (setq slides (append slides (list (length text))))
-    (setq end-of-block-in-buf (+ pos-of-block-in-buf (car (last slides))))
+    (setq slides (append slides (list end-of-block-in-buf)))
 
     (when (>= new-count (length slides)) (setq new-count 0)) ; wraparound
 
@@ -78,8 +80,8 @@
 ;;; CREATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun org-slide-insert-dblock ()
   "Create a org-slide dynamic block at point.
-   TODO Let the block inherits its properties from a variable
-       `org-slide-default-properties'."
+TODO Let the block inherits its properties from a variable
+`org-slide-default-properties'."
   (interactive)
   (org-create-dblock (list :name "org-slide" :count 0 :delimiter "#+SLIDE")))
 
@@ -87,9 +89,9 @@
 
 ;;; EXPORT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun org-slide-export (text backend info)
-  "Remove the slide delimiters from the html"
+  "Remove the slide delimiters from the html. TODO TEXT BACKEND INFO."
   (when (org-export-derived-backend-p backend 'html)
-    (print text)
+    (print info)
     ; TODO pull the delimiter argument out the plist for the dynamic block - but
     ; when looking at parse-tree: (dynamic-block (... :block-name "update" :arguments nil ..))
     (replace-regexp-in-string (regexp-quote "#+SLIDE") "" text)))
@@ -98,4 +100,4 @@
 (add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
 
 (provide 'org-slide)
-;;; test.el ends here
+;;; org-slide.el ends here
