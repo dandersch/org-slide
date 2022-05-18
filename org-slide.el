@@ -1,11 +1,9 @@
 ;;; org-slide.el --- embedded slideshows in org-mode -*- lexical-binding: t; -*-
 
-;; Copyright (C) TODO: YEAR NAME
-
-;; Author:   TODO: NAME <MAIL>
-;; Keywords: TODO: lisp
+;; Author: dandersch
+;; URL: TODO
 ;; Package-Requires: ((emacs "28.1") (org "9.5")) TODO try to support older versions
-;; Homepage: TODO
+;; Keywords: org, slideshow
 ;; Version:  0.0.1
 
 ;; This program is free software; you can redistribute it and/or modify
@@ -23,35 +21,29 @@
 
 ;;; Commentary:
 
-;; TODO Put a description of the package here
+;; TODO description of the package
 
 ;;; Code:
 
-;;; ORG-SLIDE ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(require 'org) ;; TODO should this go here or should the user be required to
-(require 'ox)  ;;      load org before loading this pkg
-
-;; TODO autoload doesn't work...
-;;;###autoload
+(require 'org)
 (defun org-dblock-write:org-slide (params)
-  "TODO: PARAMS comes from dynamic block."
+  "Show the next slide in an org-slide dynamic block.
+PARAMS contains the text of the block and everything else passed by the user."
   (let* ((text      (substring (plist-get params :content) 0 -1)) ; remove last newline from text
-         (count     (plist-get params :count)) ;; TODO check for nil, don't break when missing
+         (count     (plist-get params :count)) ; TODO check for nil, don't break when missing
          (delimiter (or (plist-get params :delimiter) "#+SLIDE"))
-         (indent (plist-get params :indentation-column)) ; TODO account for indentation
+         ;(indent (plist-get params :indentation-column)) ; TODO account for indentation
          (slides '(0))
          (new-count (1+ count))
          (pos-of-block-in-buf (point))
          last-match
          (end-of-block-in-buf (+ pos-of-block-in-buf (length text))))
     (setq delimiter (regexp-quote delimiter)) ; escape special regex chars
-    (save-excursion (insert text)
-                    ;(indent-region pos-of-block-in-buf end-of-block-in-buf indent)
-                    )
+    (save-excursion (insert text))
 
     (setq last-match (string-match delimiter text))
     (while (not (equal last-match nil)) ;; fill slides list with indices
-      (setq slides (append slides (list last-match))) ;; TODO there must be a better way...
+      (setq slides (append slides (list last-match))) ;; TODO is there a better way?
       (setq last-match (string-match delimiter text (+ (car (last slides)) (length delimiter)))))
     (setq slides (append slides (list end-of-block-in-buf)))
 
@@ -73,31 +65,31 @@
         (outline-flag-region (- pos-of-block-in-buf 2) end-of-block-in-buf nil)
         (outline-flag-region hide-from hide-to nil)))
 
-    (org-latex-preview)         ; preview latex in case they are part of the slide
-    (org-display-inline-images) ; show images in case they are part of the slide
-))
+    ; show latex and images in case they were part of the slide
+    (org-latex-preview)
+    (org-display-inline-images)))
 
-;;; CREATION ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun org-slide-insert-dblock ()
-  "Create a org-slide dynamic block at point.
-TODO Let the block inherits its properties from a variable
-`org-slide-default-properties'."
+  "Create an org-slide dynamic block at point."
   (interactive)
-  (org-create-dblock (list :name "org-slide" :count 0 :delimiter "#+SLIDE")))
+  (org-create-dblock (list :name "org-slide" :count 0 :delimiter "#+SLIDE"))
+  (save-excursion
+    (forward-line)
+    (insert "1st slide...\n#+SLIDE\n2nd slide...\n#+SLIDE\n3rd slide...")))
 
 (add-to-list 'org-dynamic-block-alist '("slide" . org-slide-insert-dblock))
 
-;;; EXPORT ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defun org-slide-export (text backend info)
-  "Remove the slide delimiters from the html. TODO TEXT BACKEND INFO."
-  (when (org-export-derived-backend-p backend 'html)
-    (print info)
-    ; TODO pull the delimiter argument out the plist for the dynamic block - but
-    ; when looking at parse-tree: (dynamic-block (... :block-name "update" :arguments nil ..))
-    (replace-regexp-in-string (regexp-quote "#+SLIDE") "" text)))
-
-; TODO can cause an error because ox gets lazy-loaded
-(add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
+; TODO support exporting org-slide blocks
+;(require 'ox)
+;(defun org-slide-export (text backend info)
+;  "Remove the slide delimiters from the html."
+;  (when (org-export-derived-backend-p backend 'html)
+;    (print info)
+;    ; TODO pull the delimiter argument out the plist for
+;    ;      the dynamic block if possible
+;    (replace-regexp-in-string (regexp-quote "#+SLIDE") "" text)))
+;
+;(add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
 
 (provide 'org-slide)
 ;;; org-slide.el ends here

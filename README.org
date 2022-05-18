@@ -1,0 +1,36 @@
+#+title: org-slide.el
+
+Embed simple slideshows into your ~org-mode~ files.
+
+[[file:./example.gif]]
+
+Implemented using org-mode [[https://orgmode.org/manual/Dynamic-Blocks.html][dynamic blocks]]. *Note that this package is not
+designed as a way to create presentations*.
+
+* Installation
+Put ~org-slide.el~ into one of the folders given by ~load-path~ and add to your
+emacs config file:
+#+BEGIN_SRC emacs-lisp
+(require 'org-slide)
+#+END_SRC
+
+* Usage
+Call ~org-dynamic-block-insert-dblock~ (bound to ~C-c C-x x~) and choose ~slide~. The
+following block will be inserted:
+
+#+BEGIN_EXAMPLE
+,#+BEGIN: org-slide :count 0 :delimiter "#+SLIDE"
+1st slide...
+,#+SLIDE
+2nd slide...
+,#+SLIDE
+3rd slide...
+,#+END:
+#+END_EXAMPLE
+
+Type out your slides in normal org-mode with every slide separated by the
+delimiter ~#+SLIDE~ - or use your own delimiter by changing the string passed with
+~:delimiter~. Every delimiter has to be on its own line.
+
+Press ~C-c~ with the point on the line containing ~#+BEGIN: org-slide~ to start
+going through the slides.
