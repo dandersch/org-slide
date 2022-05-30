@@ -1,7 +1,7 @@
 ;;; org-slide.el --- embedded slideshows in org-mode -*- lexical-binding: t; -*-
 
 ;; Author: dandersch
-;; URL: TODO
+;; URL: https://github.com/dandersch/org-slide
 ;; Package-Requires: ((emacs "28.1") (org "9.5")) TODO try to support older versions
 ;; Keywords: org, slideshow
 ;; Version:  0.0.1
@@ -31,14 +31,16 @@
 PARAMS contains the text of the block and everything else passed by the user."
   (let* ((text      (substring (plist-get params :content) 0 -1)) ; remove last newline from text
          (count     (plist-get params :count)) ; TODO check for nil, don't break when missing
-         (delimiter (or (plist-get params :delimiter) "#+SLIDE"))
+         ; NOTE: we could allow custom delimiters here
+         ;(delimiter (or (plist-get params :delimiter) "# SLIDE"))
+         (delimiter "# SLIDE")
          ;(indent (plist-get params :indentation-column)) ; TODO account for indentation
          (slides '(0))
          (new-count (1+ count))
          (pos-of-block-in-buf (point))
          last-match
          (end-of-block-in-buf (+ pos-of-block-in-buf (length text))))
-    (setq delimiter (regexp-quote delimiter)) ; escape special regex chars
+    (setq delimiter (regexp-quote delimiter)) ; escape special regex chars just in case
     (save-excursion (insert text))
 
     (setq last-match (string-match delimiter text))
@@ -49,11 +51,11 @@ PARAMS contains the text of the block and everything else passed by the user."
 
     (when (>= new-count (length slides)) (setq new-count 0)) ; wraparound
 
-    (save-excursion ; return point to where it was after this call
+    (save-excursion
       (let ((curr-count (concat ":count " (number-to-string count)))
             (next-count (concat ":count " (number-to-string new-count))))
         (forward-line -1)            ; go to #+BEGIN:... line
-        (org-hide-block-toggle 'off) ; make block fully visible incase it's hidden
+        (org-hide-block-toggle 'off) ; make block fully visible in case it's hidden
         (replace-string-in-region curr-count next-count nil pos-of-block-in-buf)))
 
     ; TODO rewrite
@@ -72,22 +74,17 @@ PARAMS contains the text of the block and everything else passed by the user."
 (defun org-slide-insert-dblock ()
   "Create an org-slide dynamic block at point."
   (interactive)
-  (org-create-dblock (list :name "org-slide" :count 0 :delimiter "#+SLIDE"))
+  (org-create-dblock (list :name "org-slide" :count 0))
   (save-excursion
     (forward-line)
-    (insert "1st slide...\n#+SLIDE\n2nd slide...\n#+SLIDE\n3rd slide...")))
+    (insert "1st slide...\n# SLIDE\n2nd slide...\n# SLIDE\n3rd slide...")))
 
 (add-to-list 'org-dynamic-block-alist '("slide" . org-slide-insert-dblock))
 
 ; TODO support exporting org-slide blocks
 ;(require 'ox)
 ;(defun org-slide-export (text backend info)
-;  "Remove the slide delimiters from the html."
-;  (when (org-export-derived-backend-p backend 'html)
-;    (print info)
-;    ; TODO pull the delimiter argument out the plist for
-;    ;      the dynamic block if possible
-;    (replace-regexp-in-string (regexp-quote "#+SLIDE") "" text)))
+;  (when (org-export-derived-backend-p backend 'html) ()))
 ;
 ;(add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
 

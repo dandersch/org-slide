@@ -1,0 +1,74 @@
+<!--  -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/> 
+<title>Org-slide</title>
+<style> 
+body
+{
+		background-color: grey;
+		color: black;
+}
+
+nav
+{
+		background-color: pink;
+		color: blue;
+}
+
+div[id^="slide-id-"] 
+{
+	/* visibility: hidden; */
+	display: none;
+}
+
+:target
+{
+	display: inline-block !important;
+	color: red            !important;
+}
+
+</style>
+</head>
+
+
+
+<body>
+
+<br>
+<br>
+<br>
+
+<div class="blog-masthead">
+<div class="container">
+
+  <a class="org-slide" id="slide-start" href="#slide-id-1">Start</a> <br>
+  <nav class="nav">
+		  <div class="org-slide" id="slide-id-1">
+            <a class="org-slide" id="slide-prev" href="#slide-id-3">Prev</a> 
+			<a class="org-slide" id="slide-next" href="#slide-id-2">Next</a> <br>
+			<a class="nav-link" href="/">Home</a> 
+			<p>Blab labl ablb lbaalla</p>
+		  </div>
+		  <div class="org-slide" id="slide-id-2">
+            <a class="org-slide" id="slide-prev" href="#slide-id-1">Prev</a> 
+			<a class="org-slide" id="slide-next" href="#slide-id-3">Next</a> <br>
+			<a class="nav-link" href="/videos">Videos</a> 
+			<h1>This is a title</h1>
+		  </div>
+		  <div class="org-slide" id="slide-id-3">
+            <a class="org-slide" id="slide-prev" href="#slide-id-2">Prev</a> 
+			<a class="org-slide" id="slide-next" href="#slide-id-1">Next</a> <br>
+			<a class="nav-link" href="https://wiki.systemcrafters.net">Wiki</a> 
+			<p>Another <b>paragraph</b></p>
+		  </div>
+  </nav>
+
+</div>
+</div>
+</body>
+</html>
+
+
