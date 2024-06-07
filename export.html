@@ -1,0 +1,43 @@
+<!--  -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/> 
+<title>Org-slide</title>
+
+<style> 
+div[id^="slide-id-"] { /* visibility: hidden; */ display: none; }
+:target { display: inline-block !important; }
+</style>
+
+</head>
+
+<body>
+<div class="container">
+
+  <!--<nav class="nav">-->
+  <a class="org-slide" id="slide-start" href="#slide-id-1">Start</a> <br>
+  <div class="org-slide-container">
+		  <div class="org-slide" id="slide-id-1">
+            <a class="org-slide" id="slide-prev" href="#slide-id-3"><</a> 
+            <a class="org-slide" id="slide-next" href="#slide-id-2">></a> <br>
+			<p>First Slide</p>
+		  </div>
+		  <div class="org-slide" id="slide-id-2">
+            <a class="org-slide" id="slide-prev" href="#slide-id-1"><</a> 
+            <a class="org-slide" id="slide-next" href="#slide-id-3">></a> <br>
+			<h1>Second</h1>
+		  </div>
+		  <div class="org-slide" id="slide-id-3">
+            <a class="org-slide" id="slide-prev" href="#slide-id-2"><</a> 
+            <a class="org-slide" id="slide-next" href="#slide-id-1">></a> <br>
+			<p>Last</p>
+		  </div>
+  </div>
+  <!--</nav>-->
+</div>
+</body>
+</html>
+
+

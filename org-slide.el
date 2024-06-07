@@ -82,12 +82,53 @@ PARAMS contains the text of the block and everything else passed by the user."
 
 (add-to-list 'org-dynamic-block-alist '("slide" . org-slide-insert-dblock))
 
+; Each filter is called with three arguments: the transcoded data,
+; as a string, the back-end, as a symbol, and the communication
+; channel, as a plist.  It must return a string or nil.
 ; TODO support exporting org-slide blocks
-;(require 'ox)
-;(defun org-slide-export (text backend info)
-;  (when (org-export-derived-backend-p backend 'html) ()))
-;
-;(add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
+(require 'ox)
+(defun org-slide-export (text backend info)
+  "TEXT BACKEND INFO."
+  (when (org-export-derived-backend-p backend 'html) ()
+    (concat
+     "<style>"
+     "div[id^=\"slide-id-\"] { /* visibility: hidden; */ display: none; }"
+     ":target { display: inline-block !important; }"
+     "</style>"
+     "<a class=\"org-slide\" id=\"slide-start\" href=\"#slide-id-1\">Start</a> <br>"
+     "<div class=\"org-slide-container\">"
+         "<div class=\"org-slide\" id=\"slide-id-1\">"
+     (string-replace "#+SLIDE" "</div> <div class=\"org-slide\" id=\"slide-id-2\"> <a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-1\"><</a><a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-3\">></a> <br>" text)
+     "</div></div>"
+     )
+;    (concat
+;      "<style>"
+;      "div[id^=\"slide-id-\"] { /* visibility: hidden; */ display: none; }"
+;      ":target { display: inline-block !important; }"
+;      "</style>"
+;      "<a class=\"org-slide\" id=\"slide-start\" href=\"#slide-id-1\">Start</a> <br>"
+;      "<div class=\"org-slide-container\">"
+;            	  "<div class=\"org-slide\" id=\"slide-id-1\">"
+;                "<a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-3\"><</a>"
+;                "<a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-2\">></a> <br>"
+;            		"<p>First Slide</p>"
+;            	  "</div>"
+;            	  "<div class=\"org-slide\" id=\"slide-id-2\">"
+;                "<a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-1\"><</a>"
+;                "<a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-3\">></a> <br>"
+;            		"<h1>Second</h1>"
+;            	  "</div>"
+;            	  "<div class=\"org-slide\" id=\"slide-id-3\">"
+;                "<a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-2\"><</a>"
+;                "<a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-1\">></a> <br>"
+;            		"<p>Last</p>"
+;            	  "</div>"
+;      "</div>"
+;      )
+    )
+  )
+
+(add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
 
 (provide 'org-slide)
 ;;; org-slide.el ends here
