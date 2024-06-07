@@ -1,0 +1,61 @@
+* Examples
+#+BEGIN: org-slide
+     (3) 5  8  1  2  9  4  6
+# SLIDE
+      5 (3) 8  1  2  9  4  6
+# SLIDE
+      5  3 (8) 1  2  9  4  6
+# SLIDE
+      5  3  1 (8) 2  9  4  6
+#+END:
+
+#+BEGIN: org-slide
+   |---+------+-----+--------|
+   |   | name | age | city   |
+   |---+------+-----+--------|
+   | 1 | max  |  23 | london |
+   |---+------+-----+--------|
+# SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   |---+-------+-----+--------|
+# SLIDE
+   |---+-------+-----+--------|
+   |   | name  | age | city   |
+   |---+-------+-----+--------|
+   | 1 | max   |  23 | london |
+   | 2 | alice |  72 | paris  |
+   | 3 | bob   |  34 | tokyo  |
+   |---+-------+-----+--------|
+#+END:
+
+* TODO
+- [ ] support indented blocks (look at columnview or clocktable for how to)
+- [ ] fix "copypaste only using one line" bug...
+- [ ] fix missing/hidden newline when using C-c and then running undo
+- [X] implement without dirtying the buffer when 'C-c C-c'
+- [ ] find out how to create a simple HTML slideshow (w/ CSS if necessary)
+- [ ] find out how to export Latex
+
+* Configuration
+To get all slideshows to be on the first slide when opening an org file
+- ~(add-hook 'org-mode-hook 'org-update-all-dblocks)~
+- NOTE: this will update all dynamic blocks in the file
+- TODO: won't this run for only the first org file opened?
+
+* Resources
+- https://orgmode.org/manual/Dynamic-Blocks.html
+- https://www.gnu.org/software/emacs/manual/html_node/org/Dynamic-Blocks.html
+- [[https://www-public.imtbs-tsp.eu/~berger_o/weblog/2019/11/26/displaying-animated-diagrams-in-org-reveal-slide-decks-with-svg/][Displaying animated diagrams in org-reveal slide decks with svg]]
+- https://orgmode.org/manual/Hacking.html#Hacking
+- https://orgmode.org/manual/Advanced-Export-Configuration.html
+
+For HTML export:
+- https://pagepro.co/blog/how-to-build-a-slider-without-javascript/
+- https://corpocrat.com/2015/12/09/20-cool-pure-css-sliders-without-jqueryjavascript/
+
+Writing emacs packages:
+- https://spin.atomicobject.com/2016/05/27/write-emacs-package/

@@ -19,18 +19,19 @@ Call ~org-dynamic-block-insert-dblock~ (bound to ~C-c C-x x~) and choose ~slide~
 following block will be inserted:
 
 #+BEGIN_EXAMPLE
-,#+BEGIN: org-slide :count 0 :delimiter "#+SLIDE"
+,#+BEGIN: org-slide :id "slideshow-name"
 1st slide...
-,#+SLIDE
+# SLIDE
 2nd slide...
-,#+SLIDE
+# SLIDE
 3rd slide...
 ,#+END:
 #+END_EXAMPLE
 
+
 Type out your slides in normal org-mode with every slide separated by the
-delimiter ~#+SLIDE~ - or use your own delimiter by changing the string passed with
-~:delimiter~. Every delimiter has to be on its own line.
+delimiter ~# SLIDE~. Every delimiter has to be on its own line.
+# TODO or use your own delimiter by changing the string passed with ~:delimiter~@@.
 
 Press ~C-c~ with the point on the line containing ~#+BEGIN: org-slide~ to start
 going through the slides.
