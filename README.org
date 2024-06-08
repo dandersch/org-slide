@@ -18,20 +18,26 @@ emacs config file:
 Call ~org-dynamic-block-insert-dblock~ (bound to ~C-c C-x x~) and choose ~slide~. The
 following block will be inserted:
 
-#+BEGIN_EXAMPLE
-,#+BEGIN: org-slide :id "slideshow-name"
+#+BEGIN_SRC org
+#+BEGIN: org-slide :id "slideshow-name"
 1st slide...
 # SLIDE
 2nd slide...
 # SLIDE
 3rd slide...
-,#+END:
-#+END_EXAMPLE
-
+#+END:
+#+END_SRC
 
 Type out your slides in normal org-mode with every slide separated by the
 delimiter ~# SLIDE~. Every delimiter has to be on its own line.
 # TODO or use your own delimiter by changing the string passed with ~:delimiter~@@.
 
-Press ~C-c~ with the point on the line containing ~#+BEGIN: org-slide~ to start
-going through the slides.
+Press ~C-c C-c~ (or call ~org-dblock-update~) with the point on the line containing
+~#+BEGIN: org-slide~ to start going through the slides.
+
+# * Export                                                           :noexport:
+# ...
+#
+# * Motivation                                                       :noexport:
+# Say you wanna take notes for an animation from a slideshow presentation. How
+# would you do this in raw text form?

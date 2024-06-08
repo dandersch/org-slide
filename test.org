@@ -1,11 +1,11 @@
 * Examples
 #+BEGIN: org-slide :id "name"
      (3) 5  8  1  2  9  4  6
-# SLIDE
+#+SLIDE
       5 (3) 8  1  2  9  4  6
-# SLIDE
+#+SLIDE
       5  3 (8) 1  2  9  4  6
-# SLIDE
+#+SLIDE
       5  3  1 (8) 2  9  4  6
 #+END:
 
@@ -31,14 +31,6 @@
    | 3 | bob   |  34 | tokyo  |
    |---+-------+-----+--------|
 #+END:
-
-* TODO
-- [ ] support indented blocks (look at columnview or clocktable for how to)
-- [ ] fix "copypaste only using one line" bug...
-- [ ] fix missing/hidden newline when using C-c and then running undo
-- [X] implement without dirtying the buffer when 'C-c C-c'
-- [ ] find out how to create a simple HTML slideshow (w/ CSS if necessary)
-- [ ] find out how to export Latex
 
 * Configuration
 To get all slideshows to be on the first slide when opening an org file
