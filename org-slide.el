@@ -90,14 +90,35 @@ PARAMS contains the text of the block and everything else passed by the user."
 
 (add-to-list 'org-dynamic-block-alist '("slide" . org-slide-insert-dblock))
 
-; Each filter is called with three arguments: the transcoded data,
-; as a string, the back-end, as a symbol, and the communication
-; channel, as a plist.  It must return a string or nil.
-; TODO support exporting org-slide blocks
 (require 'ox)
+(defun org-slide--replace-first-match-in-string (match repl string)
+  "Replace first occurrence of MATCH with REPL in STRING."
+  (let ((case-fold-search nil)) ; search is case-sensitive
+    (if (string-match match string)
+        (replace-match repl t nil string) string)))
 (defun org-slide-export (text backend info)
-  "TEXT BACKEND INFO."
+  "Each filter is called with three arguments.
+The transcoded data as a string TEXT, the back-end BACKEND,
+and the communication channel, as a plist INFO. It must return a string or nil."
+  (let* ((slidecount     0))
   (when (org-export-derived-backend-p backend 'html) ()
+
+    ; count slides
+    (with-temp-buffer
+      (insert text)
+      (goto-char (point-min))
+      (setq slidecount (+ (how-many "#\\+SLIDE") 1)))
+
+    (let ((i 0))
+      (while (progn (setq i (1+ i)) (< i slidecount))
+        (setq text (org-slide--replace-first-match-in-string "#\\+SLIDE"
+                                  (format "</div> <div class=\"org-slide\" id=\"slide-id-%d\"> <a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-%d\"><</a><a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-%d\">></a> <br>"
+                                          (+ i 1) i (if (eq i (- slidecount 1)) 1 (+ i 2)) ) text))))
+
+    (message text)
+    (setq text (string-replace "<p></p>" "" text))
+    (setq text (string-replace "<p>\n</p>" "" text))
+
     (concat
      "<style>"
      "div[id^=\"slide-id-\"] { /* visibility: hidden; */ display: none; }"
@@ -106,11 +127,10 @@ PARAMS contains the text of the block and everything else passed by the user."
      "<a class=\"org-slide\" id=\"slide-start\" href=\"#slide-id-1\">Start</a> <br>"
      "<div class=\"org-slide-container\">"
          "<div class=\"org-slide\" id=\"slide-id-1\">"
-     (string-replace "#+SLIDE" "</div> <div class=\"org-slide\" id=\"slide-id-2\"> <a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-1\"><</a><a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-3\">></a> <br>" text)
-     "</div></div>"
-     )
-    )
-  )
+             (format "<a class=\"org-slide\" id=\"slide-prev\" href=\"#slide-id-%d\"><</a>" slidecount)
+             "<a class=\"org-slide\" id=\"slide-next\" href=\"#slide-id-2\">></a>"
+     text
+     "</div></div>"))))
 
 (add-to-list 'org-export-filter-dynamic-block-functions 'org-slide-export)
 

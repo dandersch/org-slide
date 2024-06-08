@@ -1,35 +1,41 @@
 * Examples
-#+BEGIN: org-slide :id "name"
-     (3) 5  8  1  2  9  4  6
-#+SLIDE
-      5 (3) 8  1  2  9  4  6
-#+SLIDE
-      5  3 (8) 1  2  9  4  6
-#+SLIDE
-      5  3  1 (8) 2  9  4  6
-#+END:
+# #+BEGIN: org-slide :id "name"
+#      (3) 5  8  1  2  9  4  6
+# #+SLIDE
+#       5 (3) 8  1  2  9  4  6
+# #+SLIDE
+#       5  3 (8) 1  2  9  4  6
+# #+SLIDE
+#       5  3  1 (8) 2  9  4  6
+# #+END:
 
-#+BEGIN: org-slide
-   |---+------+-----+--------|
-   |   | name | age | city   |
-   |---+------+-----+--------|
-   | 1 | max  |  23 | london |
-   |---+------+-----+--------|
-# SLIDE
-   |---+-------+-----+--------|
-   |   | name  | age | city   |
-   |---+-------+-----+--------|
-   | 1 | max   |  23 | london |
-   | 2 | alice |  72 | paris  |
-   |---+-------+-----+--------|
-# SLIDE
-   |---+-------+-----+--------|
-   |   | name  | age | city   |
-   |---+-------+-----+--------|
-   | 1 | max   |  23 | london |
-   | 2 | alice |  72 | paris  |
-   | 3 | bob   |  34 | tokyo  |
-   |---+-------+-----+--------|
+#+BEGIN: org-slide :id "test"
+|-------+------+---------+--------|
+|       | test | thing   | thre   |
+|-------+------+---------+--------|
+| entry |      |         |        |
+| four  |      |         |        |
+| two   |      | ~code~    | askljd |
+| entry | X    | kasjdlk | askljd |
+|-------+------+---------+--------|
+#+SLIDE
+|-------+------+---------+--------|
+|       | test | thing   | thre   |
+|-------+------+---------+--------|
+| entry | X    | kasjdlk | askljd |
+| four  |      |         |        |
+| two   |      | ~code~    | askljd |
+| entry | X    | kasjdlk | askljd |
+|-------+------+---------+--------|
+#+SLIDE
+|-------+------+---------+--------|
+|       | test | thing   | thre   |
+|-------+------+---------+--------|
+| entry | X    | kasjdlk | askljd |
+| four  | X    | kasjdlk | askljd |
+| two   |      | ~code~    | askljd |
+| entry | X    | kasjdlk | askljd |
+|-------+------+---------+--------|
 #+END:
 
 * Configuration
